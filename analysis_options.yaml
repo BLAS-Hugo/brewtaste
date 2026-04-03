@@ -9,3 +9,5 @@ linter:
   rules:
     # Disabled — single-method interfaces are common in clean architecture
     one_member_abstracts: false
+    # Disabled — app code, not a public library
+    public_member_api_docs: false
