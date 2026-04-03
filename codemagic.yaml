@@ -1,7 +1,7 @@
 workflows:
   pr-check:
     name: PR Check
-    instance_type: linux_x2
+    instance_type: mac_mini_m2
     triggering:
       events:
         - pull_request
@@ -24,7 +24,7 @@ workflows:
 
   build-android:
     name: Build Android
-    instance_type: linux_x2
+    instance_type: mac_mini_m2
     triggering:
       events:
         - push
