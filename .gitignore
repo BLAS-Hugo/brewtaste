@@ -52,3 +52,5 @@ dart_defines/
 # Appwrite / Sentry credentials
 **/google-services.json
 **/GoogleService-Info.plist
+
+sentry.properties
