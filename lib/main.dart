@@ -1,6 +1,9 @@
+import 'package:brewtaste/core/appwrite/appwrite_constants.dart';
 import 'package:brewtaste/core/appwrite/auth_notifier.dart';
+import 'package:brewtaste/core/errors/error_reporter.dart';
 import 'package:brewtaste/core/router/app_router.dart';
 import 'package:brewtaste/core/router/deep_link_handler.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -9,15 +12,24 @@ const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppwriteConstants.assertEnvironment();
+
   await SentryFlutter.init(
     (options) {
       options
         ..dsn = _sentryDsn
         ..tracesSampleRate = 0.3;
     },
-    appRunner: () => runApp(
-      SentryWidget(child: const ProviderScope(child: App())),
-    ),
+    appRunner: () {
+      FlutterError.onError = (details) {
+        ErrorReporter.report(details.exception, details.stack);
+      };
+      PlatformDispatcher.instance.onError = (error, stack) {
+        ErrorReporter.report(error, stack);
+        return true;
+      };
+      runApp(SentryWidget(child: const ProviderScope(child: App())));
+    },
   );
 }
 
@@ -30,9 +42,11 @@ class App extends ConsumerWidget {
 
     return switch (auth) {
       AsyncData() => const _RouterApp(),
-      AsyncError(:final error) => MaterialApp(
+      AsyncError() => const MaterialApp(
         home: Scaffold(
-          body: Center(child: Text('Auth error: $error')),
+          body: Center(
+            child: Text('Unable to initialize. Please restart the app.'),
+          ),
         ),
       ),
       _ => const MaterialApp(
