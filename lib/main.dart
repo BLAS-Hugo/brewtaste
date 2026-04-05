@@ -1,10 +1,22 @@
 import 'package:brewtaste/core/appwrite/auth_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
-void main() {
+const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: App()));
+  await SentryFlutter.init(
+    (options) {
+      options
+        ..dsn = _sentryDsn
+        ..tracesSampleRate = 0.3;
+    },
+    appRunner: () => runApp(
+      SentryWidget(child: const ProviderScope(child: App())),
+    ),
+  );
 }
 
 class App extends ConsumerWidget {
