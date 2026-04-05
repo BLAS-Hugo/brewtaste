@@ -1,4 +1,6 @@
 import 'package:brewtaste/core/appwrite/auth_notifier.dart';
+import 'package:brewtaste/core/router/app_router.dart';
+import 'package:brewtaste/core/router/deep_link_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -26,18 +28,30 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
 
-    return MaterialApp(
-      home: switch (auth) {
-        AsyncData() => const Scaffold(
-          body: Center(child: Text('BrewTaste')),
-        ),
-        AsyncError(:final error) => Scaffold(
+    return switch (auth) {
+      AsyncData() => const _RouterApp(),
+      AsyncError(:final error) => MaterialApp(
+        home: Scaffold(
           body: Center(child: Text('Auth error: $error')),
         ),
-        _ => const Scaffold(
+      ),
+      _ => const MaterialApp(
+        home: Scaffold(
           body: Center(child: CircularProgressIndicator()),
         ),
-      },
+      ),
+    };
+  }
+}
+
+class _RouterApp extends ConsumerWidget {
+  const _RouterApp();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(deepLinkHandlerProvider);
+    return MaterialApp.router(
+      routerConfig: ref.watch(appRouterProvider),
     );
   }
 }

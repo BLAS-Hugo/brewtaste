@@ -102,11 +102,28 @@ await SentryFlutter.init((options) {
 
 ## Docs
 
+**Always read the relevant docs before implementing any feature.** These are the source of truth for architecture decisions, patterns, and business rules.
+
 - `docs/data-model.md` — full Appwrite schema, permissions, state machines
 - `docs/session-flow.md` — session lifecycle, join flow, round flow, results calculation, realtime events
 - `docs/feature-architecture.md` — layer responsibilities, what each feature owns
 - `docs/flutter-guidelines.md` — Riverpod patterns, GoRouter usage, clean architecture layer rules, widget conventions, error handling, naming, blind mode filtering
 - `docs/git-guidelines.md` — branch naming, commit convention (Conventional Commits), PR rules, release flow
+- `plan/MASTER_PLAN.md` — phased implementation roadmap, current progress
+- `plan/features/` — per-feature implementation plans (created just-in-time)
+
+## Development Workflow
+
+For every feature/task, follow this process strictly:
+
+1. **Create the feature branch** — from `develop`, following `docs/git-guidelines.md` naming conventions
+2. **Write `plan/features/<name>.md`** — implementation plan with approach, file structure, and key decisions. Done just-in-time, not upfront.
+3. **Implement** — run `flutter analyze` + `flutter test` locally before committing
+4. **Open a PR targeting `develop`** — never merge feature/fix/chore PRs to `main`
+5. **Merge** — Codemagic `pr-check` must pass first
+6. **Mark task complete** in `plan/MASTER_PLAN.md`
+
+`main` is the release branch only. All development goes through `develop`.
 
 ## Environment
 
