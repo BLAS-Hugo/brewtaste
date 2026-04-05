@@ -29,7 +29,7 @@ class App extends ConsumerWidget {
     final auth = ref.watch(authProvider);
 
     return switch (auth) {
-      AsyncData() => _RouterApp(ref: ref),
+      AsyncData() => const _RouterApp(),
       AsyncError(:final error) => MaterialApp(
         home: Scaffold(
           body: Center(child: Text('Auth error: $error')),
@@ -44,13 +44,11 @@ class App extends ConsumerWidget {
   }
 }
 
-class _RouterApp extends StatelessWidget {
-  const _RouterApp({required this.ref});
-
-  final WidgetRef ref;
+class _RouterApp extends ConsumerWidget {
+  const _RouterApp();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(deepLinkHandlerProvider);
     return MaterialApp.router(
       routerConfig: ref.watch(appRouterProvider),
