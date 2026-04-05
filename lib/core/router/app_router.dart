@@ -1,3 +1,4 @@
+import 'package:brewtaste/features/session/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -10,24 +11,11 @@ GoRouter appRouter(Ref ref) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const _PlaceholderScreen('Home'),
+        builder: (context, state) => const HomeScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(child: Text('Page not found: ${state.error}')),
     ),
   );
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen(this.name);
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(child: Text(name)),
-    );
-  }
 }
