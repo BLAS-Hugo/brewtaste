@@ -1,7 +1,7 @@
 workflows:
   pr-check:
     name: PR Check
-    instance_type: linux_x2
+    instance_type: mac_mini_m2
     triggering:
       events:
         - pull_request
@@ -24,13 +24,11 @@ workflows:
 
   build-android:
     name: Build Android
-    instance_type: linux_x2
+    instance_type: mac_mini_m2
     triggering:
       events:
         - push
       branch_patterns:
-        - pattern: develop
-          include: true
         - pattern: main
           include: true
     environment:
@@ -45,7 +43,12 @@ workflows:
       - name: Test
         script: flutter test
       - name: Build AAB
-        script: flutter build appbundle --release
+        script: |
+          flutter build appbundle --release \
+            --dart-define=APPWRITE_ENDPOINT=$APPWRITE_ENDPOINT \
+            --dart-define=APPWRITE_PROJECT_ID=$APPWRITE_PROJECT_ID \
+            --dart-define=APPWRITE_DATABASE_ID=$APPWRITE_DATABASE_ID \
+            --dart-define=SENTRY_DSN=$SENTRY_DSN
     artifacts:
       - build/app/outputs/bundle/release/app-release.aab
 
@@ -56,8 +59,6 @@ workflows:
       events:
         - push
       branch_patterns:
-        - pattern: develop
-          include: true
         - pattern: main
           include: true
     environment:
@@ -72,6 +73,11 @@ workflows:
       - name: Test
         script: flutter test
       - name: Build iOS
-        script: flutter build ios --release --no-codesign
+        script: |
+          flutter build ios --release --no-codesign \
+            --dart-define=APPWRITE_ENDPOINT=$APPWRITE_ENDPOINT \
+            --dart-define=APPWRITE_PROJECT_ID=$APPWRITE_PROJECT_ID \
+            --dart-define=APPWRITE_DATABASE_ID=$APPWRITE_DATABASE_ID \
+            --dart-define=SENTRY_DSN=$SENTRY_DSN
     artifacts:
       - build/ios/iphoneos/Runner.app
