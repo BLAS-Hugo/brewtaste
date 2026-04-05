@@ -10,8 +10,8 @@ part 'deep_link_handler.g.dart';
 @Riverpod(keepAlive: true)
 DeepLinkHandler deepLinkHandler(Ref ref) {
   final router = ref.watch(appRouterProvider);
-  final handler = DeepLinkHandler(router: router)
-    ..init();
+  final handler = DeepLinkHandler(router: router);
+  unawaited(handler.init());
   ref.onDispose(handler.dispose);
   return handler;
 }
@@ -23,7 +23,12 @@ class DeepLinkHandler {
   final AppLinks _appLinks = AppLinks();
   StreamSubscription<Uri>? _subscription;
 
-  void init() {
+  Future<void> init() async {
+    // Cold start — app launched directly from a deep link
+    final initialUri = await _appLinks.getInitialLink();
+    if (initialUri != null) _handleUri(initialUri);
+
+    // Warm start — app already running when link is triggered
     _subscription = _appLinks.uriLinkStream.listen(_handleUri);
   }
 
