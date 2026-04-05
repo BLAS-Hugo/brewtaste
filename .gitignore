@@ -54,3 +54,7 @@ dart_defines/
 **/GoogleService-Info.plist
 
 sentry.properties
+
+# Generated files
+*.g.dart
+*.freezed.dart
