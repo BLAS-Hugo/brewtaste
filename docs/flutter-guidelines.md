@@ -203,7 +203,7 @@ try {
 | Notifiers | `PascalCaseNotifier` | `LobbyNotifier` |
 | Providers (generated) | `camelCaseProvider` | `lobbyProvider` |
 | Private sub-widgets | `_PascalCase` | `_ParticipantList` |
-| Repository interfaces | `IPascalCaseRepository` | `ISessionRepository` |
+| Repository interfaces | `PascalCaseRepository` (abstract) | `SessionRepository` |
 | DTOs | `PascalCaseDto` | `SessionDto` |
 | Entities | `PascalCase` | `Session`, `Beer` |
 | Enums | `PascalCase` values `camelCase` | `SessionStatus.waiting` |
