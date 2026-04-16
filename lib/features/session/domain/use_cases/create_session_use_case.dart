@@ -45,7 +45,7 @@ final class CreateSessionUseCase {
       try {
         final existing = await _repository.getSessionByCode(code);
         if (existing == null) {
-          return _repository.createSession(
+          return await _repository.createSession(
             hostId: hostId,
             isBlind: isBlind,
             guessFields: guessFields,
