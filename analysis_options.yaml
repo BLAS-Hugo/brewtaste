@@ -10,3 +10,6 @@ linter:
     one_member_abstracts: false
     # Disabled — app code, not a public library
     public_member_api_docs: false
+    # Disabled — bare catch (e, st) is intentional when all exception types
+    # should be handled the same way (e.g. report + rethrow)
+    avoid_catches_without_on_clauses: false
