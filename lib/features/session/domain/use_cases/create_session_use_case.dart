@@ -12,22 +12,29 @@ final class CreateSessionUseCase {
 
   // --- Code generation ---
   static const _chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  /// Single instance — [Random.secure] seeds from OS entropy; do not
+  /// recreate per call.
   static final _random = Random.secure();
+
   static const _maxAttempts = 5;
 
   /// Creates a new session for [hostId].
   ///
-  /// Generates a unique `BREW-XXXX` code, retrying up to [_maxAttempts]
-  /// times on collision. Throws [SessionCodeCollisionException] (already
-  /// reported to Sentry) if all attempts fail.
+  /// Generates a unique `BREW-XXXX` code, retrying up to 5 times on
+  /// collision. Throws [SessionCodeCollisionException] (already reported
+  /// to Sentry) if all attempts fail.
   ///
   /// [SessionRevealedException] and [SessionExpiredException] from the
   /// repository are treated as collisions — the code is still considered
   /// taken even though the session is no longer joinable.
   ///
-  /// Any other exception thrown by the repository (e.g. AppwriteException)
-  /// propagates to the caller after being reported to Sentry. The caller is
-  /// responsible for surfacing it in the UI.
+  /// Any [SessionBusinessException] other than the above propagates to the
+  /// caller without being reported to Sentry — it is the caller's
+  /// responsibility to surface it in the UI.
+  ///
+  /// Any other exception (e.g. network or parse failures) is reported to
+  /// Sentry before propagating to the caller.
   Future<Session> call({
     required String hostId,
     required bool isBlind,
@@ -54,9 +61,13 @@ final class CreateSessionUseCase {
       } on SessionExpiredException {
         // Same rationale as SessionRevealedException above.
         continue;
+      } on SessionBusinessException {
+        // Any other business exception from the repository propagates
+        // without Sentry — the caller is responsible for UI handling.
+        rethrow;
+      // All non-business exceptions (network, parse, SDK errors) are treated
+      // identically: report to Sentry, then propagate to the caller.
       } catch (e, st) {
-        // Unexpected error (e.g. network, parse failure) — report to Sentry
-        // and surface to the caller for UI handling.
         ErrorReporter.report(e, st);
         rethrow;
       }

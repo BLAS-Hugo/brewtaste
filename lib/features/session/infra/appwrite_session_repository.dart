@@ -240,7 +240,8 @@ final class AppwriteSessionRepository implements SessionRepository {
             controller.add(
               SessionDto.fromRealtimePayload(sessionId, event.payload),
             );
-          } on Object catch (error, stackTrace) {
+          // All parse/cast failures are handled identically: report + propagate.
+          } catch (error, stackTrace) { // ignore: avoid_catches_without_on_clauses
             ErrorReporter.report(error, stackTrace);
             if (!controller.isClosed) controller.addError(error, stackTrace);
           }
@@ -375,7 +376,7 @@ final class AppwriteSessionRepository implements SessionRepository {
   T _parseDoc<T>(Document doc, T Function(Document) parse) {
     try {
       return parse(doc);
-    } on Object catch (error, stackTrace) {
+    } catch (error, stackTrace) {
       // Catches FormatException from require<T> / DateTime.parse and any
       // TypeError from raw casts in future DTO changes.
       ErrorReporter.report(error, stackTrace);
