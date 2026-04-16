@@ -4,6 +4,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'join_session_use_case_provider.g.dart';
 
-@Riverpod(keepAlive: true)
+@riverpod
 JoinSessionUseCase joinSessionUseCase(Ref ref) =>
     JoinSessionUseCase(ref.watch(sessionRepositoryProvider));

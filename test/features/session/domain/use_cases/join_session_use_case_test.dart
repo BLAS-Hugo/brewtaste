@@ -169,8 +169,18 @@ void main() {
 
     test('null returned by repository throws SessionNotFoundException',
         () async {
+      var createParticipantCalled = false;
       final repo = _FakeSessionRepository(
         onGetSessionByCode: (_) async => null,
+        onCreateParticipant: ({
+          required sessionId,
+          required userId,
+          required pseudo,
+          required isHost,
+        }) async {
+          createParticipantCalled = true;
+          return _fakeParticipant();
+        },
       );
 
       await expectLater(
@@ -187,6 +197,8 @@ void main() {
           ),
         ),
       );
+
+      expect(createParticipantCalled, false);
     });
 
     test('SessionRevealedException propagates without Sentry report', () async {
@@ -254,5 +266,86 @@ void main() {
 
       expect(reportedError, same(unexpected));
     });
+
+    test('pseudo is trimmed before createParticipant call', () async {
+      String? capturedPseudo;
+      final repo = _FakeSessionRepository(
+        onGetSessionByCode: (_) async => _fakeSession(),
+        onCreateParticipant: ({
+          required sessionId,
+          required userId,
+          required pseudo,
+          required isHost,
+        }) async {
+          capturedPseudo = pseudo;
+          return _fakeParticipant();
+        },
+      );
+
+      await JoinSessionUseCase(repo)(
+        code: 'BREW-TEST',
+        userId: userId,
+        pseudo: '  Hugo  ',
+      );
+
+      expect(capturedPseudo, 'Hugo');
+    });
+
+    test('createParticipant is called with isHost: false', () async {
+      bool? capturedIsHost;
+      final repo = _FakeSessionRepository(
+        onGetSessionByCode: (_) async => _fakeSession(),
+        onCreateParticipant: ({
+          required sessionId,
+          required userId,
+          required pseudo,
+          required isHost,
+        }) async {
+          capturedIsHost = isHost;
+          return _fakeParticipant();
+        },
+      );
+
+      await JoinSessionUseCase(repo)(
+        code: 'BREW-TEST',
+        userId: userId,
+        pseudo: pseudo,
+      );
+
+      expect(capturedIsHost, false);
+    });
+
+    test(
+      'unexpected exception from createParticipant is reported to Sentry '
+      'and rethrown',
+      () async {
+        final unexpected = Exception('write failure');
+        Object? reportedError;
+        ErrorReporter.onReport = (e, st) => reportedError = e;
+        addTearDown(() => ErrorReporter.onReport = null);
+
+        final repo = _FakeSessionRepository(
+          onGetSessionByCode: (_) async => _fakeSession(),
+          onCreateParticipant: ({
+            required sessionId,
+            required userId,
+            required pseudo,
+            required isHost,
+          }) async =>
+              throw unexpected,
+        );
+
+        await expectLater(
+          () => JoinSessionUseCase(repo)(
+            code: 'BREW-TEST',
+            userId: userId,
+            pseudo: pseudo,
+          ),
+          throwsA(same(unexpected)),
+        );
+
+        expect(reportedError, same(unexpected));
+      },
+    );
   });
 }
