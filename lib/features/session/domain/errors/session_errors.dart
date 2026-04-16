@@ -43,8 +43,10 @@ final class SessionExpiredException extends SessionBusinessException {
 }
 
 /// Failed to generate a unique session code after the maximum number of
-/// retries. Always report to Sentry — this should not happen in practice.
-final class SessionCodeCollisionException extends SessionUnexpectedException {
+/// retries. Reported to Sentry by the use case before throwing.
+/// Callers should surface it to the user as a transient error — do NOT
+/// report it again or treat it as a generic [SessionUnexpectedException].
+final class SessionCodeCollisionException implements Exception {
   const SessionCodeCollisionException();
 
   @override
