@@ -12,10 +12,18 @@ class JoinSessionScreen extends ConsumerStatefulWidget {
 }
 
 class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
-  final _codeController = TextEditingController();
+  final _codeController = TextEditingController(text: 'BREW-');
   final _pseudoController = TextEditingController();
   bool _codeEmpty = false;
   bool _pseudoEmpty = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _codeController.selection = TextSelection.collapsed(
+      offset: _codeController.text.length,
+    );
+  }
 
   @override
   void dispose() {
