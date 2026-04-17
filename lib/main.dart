@@ -6,6 +6,7 @@ import 'package:brewtaste/core/router/deep_link_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
@@ -65,7 +66,34 @@ class _RouterApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(deepLinkHandlerProvider);
     return MaterialApp.router(
+      theme: _buildTheme(),
       routerConfig: ref.watch(appRouterProvider),
+    );
+  }
+
+  ThemeData _buildTheme() {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFFF5A623),
+      brightness: Brightness.dark,
+    ).copyWith(
+      primary: const Color(0xFFF5A623),
+      onPrimary: const Color(0xFF1A1410),
+      surface: const Color(0xFF1A1410),
+      surfaceContainerLow: const Color(0xFF221B12),
+      surfaceContainer: const Color(0xFF2C2318),
+      surfaceContainerHigh: const Color(0xFF3A2E20),
+      onSurface: const Color(0xFFF5ECD7),
+      onSurfaceVariant: const Color(0xFFBDA882),
+      secondary: const Color(0xFFC47A1E),
+      onSecondary: const Color(0xFF1A1410),
+    );
+    final textTheme =
+        GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme);
+    return ThemeData(
+      colorScheme: scheme,
+      textTheme: textTheme,
+      useMaterial3: true,
+      scaffoldBackgroundColor: scheme.surface,
     );
   }
 }
