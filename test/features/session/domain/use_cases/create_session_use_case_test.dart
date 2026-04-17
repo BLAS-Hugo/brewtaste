@@ -24,9 +24,14 @@ final class _FakeSessionRepository implements SessionRepository {
 
   int getSessionByCodeCallCount = 0;
   int createSessionCallCount = 0;
+  int createParticipantCallCount = 0;
 
   /// The code most recently passed to [createSession], captured for assertions.
   String? lastCreatedCode;
+
+  /// Args from the most recent [createParticipant] call.
+  ({String sessionId, String userId, String pseudo, bool isHost})?
+      lastCreateParticipantArgs;
 
   @override
   Future<Session?> getSessionByCode(String code) {
@@ -69,8 +74,23 @@ final class _FakeSessionRepository implements SessionRepository {
     required String userId,
     required String pseudo,
     required bool isHost,
-  }) =>
-      throw UnimplementedError();
+  }) async {
+    createParticipantCallCount++;
+    lastCreateParticipantArgs = (
+      sessionId: sessionId,
+      userId: userId,
+      pseudo: pseudo,
+      isHost: isHost,
+    );
+    return Participant(
+      id: 'participant-1',
+      sessionId: sessionId,
+      userId: userId,
+      pseudo: pseudo,
+      isHost: isHost,
+      joinedAt: DateTime.now().toUtc(),
+    );
+  }
   @override
   Future<void> kickParticipant({
     required String sessionId,
@@ -105,8 +125,31 @@ Session _fakeSession({String code = 'BREW-TEST'}) => Session(
 void main() {
   group('CreateSessionUseCase', () {
     const hostId = 'host-1';
+    const pseudo = 'Testeur';
     const isBlind = false;
     const guessFields = <GuessField>[];
+
+    test('happy path — createParticipant called with correct host args',
+        () async {
+      final created = _fakeSession();
+      final repo = _FakeSessionRepository(
+        onGetSessionByCode: (_, i) async => null,
+        sessionToReturn: created,
+      );
+
+      await CreateSessionUseCase(repo)(
+        hostId: hostId,
+        pseudo: pseudo,
+        isBlind: isBlind,
+        guessFields: guessFields,
+      );
+
+      expect(repo.createParticipantCallCount, 1);
+      expect(repo.lastCreateParticipantArgs?.sessionId, created.id);
+      expect(repo.lastCreateParticipantArgs?.userId, hostId);
+      expect(repo.lastCreateParticipantArgs?.pseudo, pseudo);
+      expect(repo.lastCreateParticipantArgs?.isHost, isTrue);
+    });
 
     test('happy path — unique code on first attempt', () async {
       final created = _fakeSession();
@@ -118,6 +161,7 @@ void main() {
 
       final result = await useCase(
         hostId: hostId,
+        pseudo: pseudo,
         isBlind: isBlind,
         guessFields: guessFields,
       );
@@ -141,6 +185,7 @@ void main() {
 
       await CreateSessionUseCase(repo)(
         hostId: hostId,
+        pseudo: pseudo,
         isBlind: isBlind,
         guessFields: guessFields,
       );
@@ -161,6 +206,7 @@ void main() {
 
       await CreateSessionUseCase(repo)(
         hostId: hostId,
+        pseudo: pseudo,
         isBlind: isBlind,
         guessFields: guessFields,
       );
@@ -179,6 +225,7 @@ void main() {
 
       final result = await useCase(
         hostId: hostId,
+        pseudo: pseudo,
         isBlind: isBlind,
         guessFields: guessFields,
       );
@@ -199,6 +246,7 @@ void main() {
 
       final result = await useCase(
         hostId: hostId,
+        pseudo: pseudo,
         isBlind: isBlind,
         guessFields: guessFields,
       );
@@ -220,6 +268,7 @@ void main() {
         await expectLater(
           () => useCase(
             hostId: hostId,
+            pseudo: pseudo,
             isBlind: isBlind,
             guessFields: guessFields,
           ),
@@ -246,6 +295,7 @@ void main() {
 
         final result = await useCase(
           hostId: hostId,
+          pseudo: pseudo,
           isBlind: isBlind,
           guessFields: guessFields,
         );
@@ -271,6 +321,7 @@ void main() {
 
         final result = await useCase(
           hostId: hostId,
+          pseudo: pseudo,
           isBlind: isBlind,
           guessFields: guessFields,
         );
@@ -293,6 +344,7 @@ void main() {
         await expectLater(
           () => useCase(
             hostId: hostId,
+            pseudo: pseudo,
             isBlind: isBlind,
             guessFields: guessFields,
           ),
