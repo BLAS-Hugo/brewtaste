@@ -19,7 +19,6 @@
 | `userId` | string | ✓ | Appwrite anonymous userId |
 | `pseudo` | string | ✓ | Chosen on join |
 | `isHost` | boolean | ✓ | |
-| `joinedAt` | datetime | ✓ | |
 
 ## `beers`
 

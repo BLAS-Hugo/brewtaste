@@ -4,7 +4,7 @@ abstract final class AppwriteConstants {
   static const databaseId = String.fromEnvironment('APPWRITE_DATABASE_ID');
 
   // Appwrite collection IDs — must match the IDs in the Appwrite console
-  static const sessionsCollection = 'sessions';
+  static const sessionsCollection = 'session';
   static const participantsCollection = 'participants';
   static const beersCollection = 'beers';
   static const votesCollection = 'votes';
