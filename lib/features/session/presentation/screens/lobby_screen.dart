@@ -9,6 +9,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+// Warm palette for participant avatars — derived by hashing the pseudo.
+const _avatarColors = [
+  Color(0xFFF5A623), // amber
+  Color(0xFFC47A1E), // ochre
+  Color(0xFFC0623A), // terra cotta
+  Color(0xFF8B5E3C), // warm brown
+  Color(0xFFD4A017), // golden
+  Color(0xFFCC5500), // burnt orange
+];
+
+Color _avatarColor(String pseudo) =>
+    _avatarColors[pseudo.codeUnits.fold(0, (sum, c) => sum + c) %
+        _avatarColors.length];
+
 class LobbyScreen extends ConsumerWidget {
   const LobbyScreen({required this.sessionId, super.key});
 
@@ -18,12 +32,10 @@ class LobbyScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(lobbyProvider(sessionId), (prev, next) {
       next.whenData((state) {
-        // Host started session → everyone moves to voting
         if (state.session.status == SessionStatus.tasting) {
           context.go('/session/$sessionId/voting');
           return;
         }
-        // Participant was kicked → back to home
         if (!state.isHost) {
           final prevParticipants = switch (prev) {
             AsyncData(:final value) => value.participants,
@@ -68,7 +80,7 @@ class _HostLobby extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cs = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final canStart = lobby.participants.length >= 2;
 
     return Scaffold(
@@ -80,56 +92,62 @@ class _HostLobby extends ConsumerWidget {
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: QrImageView(
-              data: 'brewtaste://join/${lobby.session.code}',
-              size: 160,
-              eyeStyle: QrEyeStyle(
-                eyeShape: QrEyeShape.square,
-                color: cs.onSurface,
-              ),
-              dataModuleStyle: QrDataModuleStyle(
-                dataModuleShape: QrDataModuleShape.square,
-                color: cs.onSurface,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: colorScheme.onSurfaceVariant),
+                ),
+                padding: const EdgeInsets.all(1),
+                child: QrImageView(
+                  data: 'brewtaste://join/${lobby.session.code}',
+                  size: 160,
+                  eyeStyle: QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: colorScheme.onSurface,
+                  ),
+                  dataModuleStyle: QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text(
-                  '${lobby.participants.length} participant'
-                  '${lobby.participants.length > 1 ? 's' : ''}',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
-                ),
-              ],
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+            child: Text(
+              '${lobby.participants.length} participant'
+              '${lobby.participants.length > 1 ? 's' : ''}',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
             ),
           ),
-          const SizedBox(height: 8),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               itemCount: lobby.participants.length,
-              itemBuilder: (context, i) {
-                final p = lobby.participants[i];
+              itemBuilder: (context, index) {
+                final participant = lobby.participants[index];
                 return _ParticipantTile(
-                  participant: p,
-                  trailing: p.isHost
+                  participant: participant,
+                  trailing: participant.isHost
                       ? null
                       : IconButton(
                           icon: const Icon(Icons.person_remove_outlined),
-                          color: cs.error,
+                          color: colorScheme.error,
                           tooltip: 'Exclure',
                           onPressed: () => ref
                               .read(lobbyProvider(sessionId).notifier)
                               .kick(
-                                participantId: p.id,
-                                kickedUserId: p.userId,
+                                participantId: participant.id,
+                                kickedUserId: participant.userId,
                               ),
                         ),
                 );
@@ -165,7 +183,7 @@ class _ParticipantLobby extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -176,39 +194,65 @@ class _ParticipantLobby extends StatelessWidget {
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 32),
-          CircularProgressIndicator(color: cs.primary),
-          const SizedBox(height: 16),
-          Text(
-            "En attente du lancement par l'hôte",
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: cs.onSurfaceVariant),
-          ),
-          const SizedBox(height: 32),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text(
-                  '${lobby.participants.length} participant'
-                  '${lobby.participants.length > 1 ? 's' : ''}',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
-                ),
-              ],
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              child: Row(
+                spacing: 16,
+                children: [
+                  SizedBox.square(
+                    dimension: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 2,
+                      children: [
+                        Text(
+                          "En attente de l'hôte",
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        Text(
+                          'La dégustation démarrera bientôt.',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+            child: Text(
+              '${lobby.participants.length} participant'
+              '${lobby.participants.length > 1 ? 's' : ''}',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               itemCount: lobby.participants.length,
-              itemBuilder: (context, i) =>
-                  _ParticipantTile(participant: lobby.participants[i]),
+              itemBuilder: (context, index) =>
+                  _ParticipantTile(participant: lobby.participants[index]),
             ),
           ),
         ],
@@ -229,20 +273,27 @@ class _ParticipantTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final avatarColor = _avatarColor(participant.pseudo);
+
     return ListTile(
-      contentPadding: EdgeInsets.zero,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
       leading: CircleAvatar(
-        backgroundColor: cs.surfaceContainerHigh,
+        backgroundColor: avatarColor.withValues(alpha: 0.2),
         child: Text(
           participant.pseudo[0].toUpperCase(),
-          style: TextStyle(color: cs.primary, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: avatarColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       title: Text(participant.pseudo),
       subtitle: participant.isHost
-          ? Text('Hôte',
-              style: TextStyle(color: cs.primary, fontSize: 12))
+          ? Text(
+              'Hôte',
+              style: TextStyle(color: colorScheme.primary, fontSize: 12),
+            )
           : null,
       trailing: trailing,
     );
@@ -256,11 +307,10 @@ class _CodeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () async {
         await Clipboard.setData(ClipboardData(text: code));
-        // Android 13+ (API 33) shows its own clipboard toast — skip ours.
         var showSnackBar = true;
         if (defaultTargetPlatform == TargetPlatform.android) {
           final info = await DeviceInfoPlugin().androidInfo;
@@ -273,24 +323,28 @@ class _CodeChip extends StatelessWidget {
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: cs.surfaceContainerHigh,
+          color: colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          spacing: 6,
           children: [
             Text(
               code,
               style: TextStyle(
-                color: cs.primary,
+                color: colorScheme.primary,
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
             ),
-            const SizedBox(width: 4),
-            Icon(Icons.copy_outlined, size: 13, color: cs.onSurfaceVariant),
+            Icon(
+              Icons.copy_outlined,
+              size: 13,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),
