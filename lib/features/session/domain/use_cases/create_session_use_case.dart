@@ -19,7 +19,8 @@ final class CreateSessionUseCase {
 
   static const _maxAttempts = 5;
 
-  /// Creates a new session for [hostId].
+  /// Creates a new session for [hostId] and registers the host as a
+  /// participant under [pseudo].
   ///
   /// Generates a unique `BREW-XXXX` code, retrying up to 5 times on
   /// collision. Throws [SessionCodeCollisionException] (already reported
@@ -37,6 +38,7 @@ final class CreateSessionUseCase {
   /// Sentry before propagating to the caller.
   Future<Session> call({
     required String hostId,
+    required String pseudo,
     required bool isBlind,
     required List<GuessField> guessFields,
   }) async {
@@ -45,12 +47,19 @@ final class CreateSessionUseCase {
       try {
         final existing = await _repository.getSessionByCode(code);
         if (existing == null) {
-          return await _repository.createSession(
+          final session = await _repository.createSession(
             hostId: hostId,
             isBlind: isBlind,
             guessFields: guessFields,
             code: code,
           );
+          await _repository.createParticipant(
+            sessionId: session.id,
+            userId: hostId,
+            pseudo: pseudo,
+            isHost: true,
+          );
+          return session;
         }
         // existing != null → code is taken, try next
       } on SessionRevealedException {
