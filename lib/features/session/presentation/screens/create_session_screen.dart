@@ -91,40 +91,79 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
               if (_pseudoEmpty) setState(() => _pseudoEmpty = false);
             },
           ),
-          const SizedBox(height: 24),
-          SwitchListTile(
-            title: const Text('Mode aveugle'),
-            subtitle: const Text('Masque le nom et la brasserie'),
-            value: _isBlind,
-            onChanged: isLoading ? null : _onBlindChanged,
-            contentPadding: EdgeInsets.zero,
+          const SizedBox(height: 28),
+          Text(
+            'Configuration de la session',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
           const SizedBox(height: 8),
-          const Text('Champs à deviner'),
-          _GuessFieldTile(
-            label: 'Style',
-            checked: _guessFields.contains(GuessField.style),
-            onTap: isLoading ? null : () => _toggleGuessField(GuessField.style),
-          ),
-          _GuessFieldTile(
-            label: 'Brasserie',
-            checked: _guessFields.contains(GuessField.brewery),
-            enabled: _isBlind,
-            onTap: isLoading
-                ? null
-                : () => _toggleGuessField(GuessField.brewery),
-          ),
-          _GuessFieldTile(
-            label: 'Houblon',
-            checked: _guessFields.contains(GuessField.hops),
-            onTap: isLoading ? null : () => _toggleGuessField(GuessField.hops),
-          ),
-          _GuessFieldTile(
-            label: 'Arômes',
-            checked: _guessFields.contains(GuessField.aromas),
-            onTap: isLoading
-                ? null
-                : () => _toggleGuessField(GuessField.aromas),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SwitchListTile(
+                  title: const Text('Mode aveugle'),
+                  subtitle: const Text('Masque le nom et la brasserie'),
+                  value: _isBlind,
+                  onChanged: isLoading ? null : _onBlindChanged,
+                ),
+                const Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    top: 12,
+                    bottom: 4,
+                  ),
+                  child: Text(
+                    'Champs à deviner',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ),
+                _GuessFieldTile(
+                  label: 'Style',
+                  checked: _guessFields.contains(GuessField.style),
+                  onTap:
+                      isLoading
+                          ? null
+                          : () => _toggleGuessField(GuessField.style),
+                ),
+                _GuessFieldTile(
+                  label: 'Brasserie',
+                  checked: _guessFields.contains(GuessField.brewery),
+                  enabled: _isBlind,
+                  onTap:
+                      isLoading
+                          ? null
+                          : () => _toggleGuessField(GuessField.brewery),
+                ),
+                _GuessFieldTile(
+                  label: 'Houblon',
+                  checked: _guessFields.contains(GuessField.hops),
+                  onTap:
+                      isLoading
+                          ? null
+                          : () => _toggleGuessField(GuessField.hops),
+                ),
+                _GuessFieldTile(
+                  label: 'Arômes',
+                  checked: _guessFields.contains(GuessField.aromas),
+                  onTap:
+                      isLoading
+                          ? null
+                          : () => _toggleGuessField(GuessField.aromas),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 32),
           FilledButton(

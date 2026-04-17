@@ -85,6 +85,7 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
               labelText: 'Code de session',
               hintText: 'BREW-XXXX',
               errorText: _codeEmpty ? 'Requis' : null,
+              prefixIcon: const Icon(Icons.tag_outlined),
             ),
             textCapitalization: TextCapitalization.characters,
             onChanged: (v) {
@@ -99,12 +100,13 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
             },
             enabled: !isLoading,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           TextField(
             controller: _pseudoController,
             decoration: InputDecoration(
               labelText: 'Votre pseudo',
               errorText: _pseudoEmpty ? 'Requis' : null,
+              prefixIcon: const Icon(Icons.person_outline),
             ),
             textCapitalization: TextCapitalization.words,
             enabled: !isLoading,

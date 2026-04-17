@@ -94,6 +94,22 @@ class _RouterApp extends ConsumerWidget {
       textTheme: textTheme,
       useMaterial3: true,
       scaffoldBackgroundColor: scheme.surface,
+      inputDecorationTheme: InputDecorationTheme(
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            color: scheme.onSurfaceVariant.withValues(alpha: 0.4),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: scheme.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: scheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: scheme.error, width: 2),
+        ),
+      ),
     );
   }
 }
