@@ -2,6 +2,10 @@ workflows:
   pr-check:
     name: PR Check
     instance_type: mac_mini_m2
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT
+        - $HOME/.pub-cache
     triggering:
       events:
         - pull_request
@@ -27,6 +31,10 @@ workflows:
   build-android:
     name: Build Android
     instance_type: mac_mini_m2
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT
+        - $HOME/.pub-cache
     triggering:
       events:
         - push
@@ -57,6 +65,10 @@ workflows:
   build-ios:
     name: Build iOS
     instance_type: mac_mini_m2
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT
+        - $HOME/.pub-cache
     triggering:
       events:
         - push
