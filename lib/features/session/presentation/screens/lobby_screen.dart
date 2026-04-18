@@ -1,4 +1,5 @@
 import 'package:brewtaste/features/session/presentation/notifiers/lobby_notifier.dart';
+import 'package:brewtaste/shared/domain/entities/beer.dart';
 import 'package:brewtaste/shared/domain/entities/participant.dart';
 import 'package:brewtaste/shared/domain/entities/session.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -83,6 +84,9 @@ class _HostLobby extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final canStart = lobby.participants.length >= 2;
 
+    final participantCount = lobby.participants.length;
+    final beerCount = lobby.beers.length;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Salon'),
@@ -91,51 +95,59 @@ class _HostLobby extends ConsumerWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colorScheme.onSurfaceVariant),
-                ),
-                padding: const EdgeInsets.all(1),
-                child: QrImageView(
-                  data: 'brewtaste://join/${lobby.session.code}',
-                  size: 160,
-                  eyeStyle: QrEyeStyle(
-                    eyeShape: QrEyeShape.square,
-                    color: colorScheme.onSurface,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/session/$sessionId/add-beer'),
+        tooltip: 'Ajouter une bière',
+        child: const Icon(Icons.add),
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colorScheme.onSurfaceVariant),
                   ),
-                  dataModuleStyle: QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: colorScheme.onSurface,
+                  padding: const EdgeInsets.all(1),
+                  child: QrImageView(
+                    data: 'brewtaste://join/${lobby.session.code}',
+                    size: 160,
+                    eyeStyle: QrEyeStyle(
+                      eyeShape: QrEyeShape.square,
+                      color: colorScheme.onSurface,
+                    ),
+                    dataModuleStyle: QrDataModuleStyle(
+                      dataModuleShape: QrDataModuleShape.square,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-            child: Text(
-              '${lobby.participants.length} participant'
-              '${lobby.participants.length > 1 ? 's' : ''}',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+              child: Text(
+                '$participantCount participant'
+                '${participantCount > 1 ? 's' : ''}',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: lobby.participants.length,
-              itemBuilder: (context, index) {
-                final participant = lobby.participants[index];
-                return _ParticipantTile(
+          SliverList.builder(
+            itemCount: participantCount,
+            itemBuilder: (context, index) {
+              final participant = lobby.participants[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: _ParticipantTile(
                   participant: participant,
                   trailing: participant.isHost
                       ? null
@@ -150,10 +162,42 @@ class _HostLobby extends ConsumerWidget {
                                 kickedUserId: participant.userId,
                               ),
                         ),
-                );
-              },
+                ),
+              );
+            },
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+              child: Text(
+                '$beerCount bière${beerCount > 1 ? 's' : ''}',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
             ),
           ),
+          if (beerCount == 0)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                child: Text(
+                  "Aucune bière ajoutée pour l'instant.",
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            )
+          else
+            SliverList.builder(
+              itemCount: beerCount,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: _BeerTile(beer: lobby.beers[index]),
+              ),
+            ),
+          const SliverToBoxAdapter(child: SizedBox(height: 80)),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -296,6 +340,41 @@ class _ParticipantTile extends StatelessWidget {
             )
           : null,
       trailing: trailing,
+    );
+  }
+}
+
+class _BeerTile extends StatelessWidget {
+  const _BeerTile({required this.beer});
+
+  final Beer beer;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final (label, labelColor) = switch (beer.status) {
+      BeerStatus.pending => ('En attente', colorScheme.onSurfaceVariant),
+      BeerStatus.voting => ('Vote en cours', colorScheme.primary),
+      BeerStatus.revealed => ('Révélée', colorScheme.tertiary),
+    };
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+      leading: const CircleAvatar(child: Icon(Icons.sports_bar_outlined)),
+      title: Text(beer.name ?? '—'),
+      subtitle: beer.brewery != null
+          ? Text(
+              beer.brewery!,
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            )
+          : null,
+      trailing: Text(
+        label,
+        style: Theme.of(context)
+            .textTheme
+            .labelSmall
+            ?.copyWith(color: labelColor),
+      ),
     );
   }
 }

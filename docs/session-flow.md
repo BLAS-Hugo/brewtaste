@@ -7,14 +7,28 @@ Host creates session
        ↓
     [waiting]  ← participants join via code / QR / deep link
        ↓         host sees arrivals in real-time, can kick
-  Host launches
+  Host launches (≥2 participants required)
        ↓
-   [tasting]  ← beer-by-beer, host controls the pace
+   [tasting]  ← host adds beers on the fly, one round per beer
+       │
+       │  ┌─────────────────────────────────────────┐
+       │  │ Host adds beer (manual or barcode scan) │
+       │  │         ↓                               │
+       │  │ Host starts vote → beer.status=voting   │
+       │  │         ↓                               │
+       │  │ Participants vote / skip                │
+       │  │         ↓                               │
+       │  │ Host closes round → beer.status=revealed│
+       │  │         ↓                               │
+       │  │    Next beer? ──────────────────────────┘
+       │
        ↓
-  Host closes
+  Host closes session
        ↓
   [revealed]  ← all participants see results simultaneously
 ```
+
+Beers are added **during** the tasting phase, not upfront. The host can add as many beers as needed, in any order, throughout the session.
 
 ---
 

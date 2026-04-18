@@ -1,7 +1,9 @@
 import 'package:brewtaste/core/appwrite/auth_notifier.dart';
 import 'package:brewtaste/core/errors/error_reporter.dart';
+import 'package:brewtaste/features/beer/infra/beer_repository_provider.dart';
 import 'package:brewtaste/features/session/domain/errors/session_errors.dart';
 import 'package:brewtaste/features/session/infra/session_repository_provider.dart';
+import 'package:brewtaste/shared/domain/entities/beer.dart';
 import 'package:brewtaste/shared/domain/entities/participant.dart';
 import 'package:brewtaste/shared/domain/entities/session.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -13,22 +15,26 @@ class LobbyState {
     required this.session,
     required this.participants,
     required this.currentUserId,
+    required this.beers,
   });
 
   final Session session;
   final List<Participant> participants;
   final String currentUserId;
+  final List<Beer> beers;
 
   bool get isHost => currentUserId == session.hostId;
 
   LobbyState copyWith({
     Session? session,
     List<Participant>? participants,
+    List<Beer>? beers,
   }) =>
       LobbyState(
         session: session ?? this.session,
         participants: participants ?? this.participants,
         currentUserId: currentUserId,
+        beers: beers ?? this.beers,
       );
 }
 
@@ -43,11 +49,25 @@ class LobbyNotifier extends _$LobbyNotifier {
     if (session == null) throw SessionNotFoundException(sessionId);
 
     final initialParticipants = await repo.getParticipants(sessionId);
+    final beerRepo = ref.read(beerRepositoryProvider);
+    final initialBeers = await beerRepo.getBeers(sessionId);
+
     var current = LobbyState(
       session: session,
       participants: initialParticipants,
       currentUserId: userId,
+      beers: initialBeers,
     );
+
+    final beersSub = beerRepo.watchBeers(sessionId).listen(
+      (beers) {
+        state = AsyncData(current = current.copyWith(beers: beers));
+      },
+      onError: (Object e, StackTrace st) {
+        ErrorReporter.report(e, st);
+      },
+    );
+    ref.onDispose(beersSub.cancel);
 
     final participantsSub = repo.watchParticipants(sessionId).listen(
       (participants) {

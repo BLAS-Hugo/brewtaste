@@ -1,3 +1,4 @@
+import 'package:brewtaste/features/beer/presentation/screens/add_beer_screen.dart';
 import 'package:brewtaste/features/session/presentation/screens/create_session_screen.dart';
 import 'package:brewtaste/features/session/presentation/screens/home_screen.dart';
 import 'package:brewtaste/features/session/presentation/screens/join_session_screen.dart';
@@ -27,6 +28,12 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: '/session/:id/lobby',
         builder: (context, state) => LobbyScreen(
+          sessionId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/session/:id/add-beer',
+        builder: (context, state) => AddBeerScreen(
           sessionId: state.pathParameters['id']!,
         ),
       ),
