@@ -21,6 +21,8 @@ abstract interface class BeerRepository {
 
   Future<void> startVoting(String beerId);
 
+  Future<void> revealBeer(String beerId);
+
   Future<List<Beer>> getBeers(String sessionId);
 
   Stream<List<Beer>> watchBeers(String sessionId);

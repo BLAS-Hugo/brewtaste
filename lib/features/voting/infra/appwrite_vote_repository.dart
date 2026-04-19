@@ -4,17 +4,16 @@ import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
 import 'package:brewtaste/core/appwrite/appwrite_constants.dart';
 import 'package:brewtaste/core/errors/error_reporter.dart';
-import 'package:brewtaste/features/beer/data/dtos/beer_dto.dart';
-import 'package:brewtaste/features/beer/domain/repositories/beer_repository.dart';
-import 'package:brewtaste/shared/domain/entities/beer.dart';
+import 'package:brewtaste/features/voting/data/dtos/vote_dto.dart';
+import 'package:brewtaste/features/voting/domain/repositories/vote_repository.dart';
+import 'package:brewtaste/shared/domain/entities/vote.dart';
 
-// Appwrite 23 deprecated the Documents API in favour of TablesDB (a new
-// structured-data feature). Our backend uses Collections, so we keep using
-// the Documents API until a full backend migration is warranted.
+// Appwrite 23 deprecated the Documents API in favour of TablesDB. Our backend
+// uses Collections, so we keep using the Documents API until a full migration.
 // ignore_for_file: deprecated_member_use
 
-final class AppwriteBeerRepository implements BeerRepository {
-  AppwriteBeerRepository({
+final class AppwriteVoteRepository implements VoteRepository {
+  AppwriteVoteRepository({
     required Databases databases,
     required Realtime realtime,
   })  : _databases = databases,
@@ -24,103 +23,41 @@ final class AppwriteBeerRepository implements BeerRepository {
   final Realtime _realtime;
 
   static const String _db = AppwriteConstants.databaseId;
-  static const String _beers = AppwriteConstants.beersCollection;
+  static const String _votes = AppwriteConstants.votesCollection;
   static const int _pageLimit = 100;
 
   @override
-  Future<Beer> addBeer({
+  Future<Vote> submitVote({
     required String sessionId,
-    required String name,
-    required String brewery,
-    String? style,
-    String? hops,
-    String? aromas,
+    required String beerId,
+    required String userId,
+    required Map<String, String> guesses,
+    required bool hasSkipped,
+    int? score,
   }) async {
     final doc = await _databases.createDocument(
       databaseId: _db,
-      collectionId: _beers,
+      collectionId: _votes,
       documentId: ID.unique(),
-      data: BeerDto.toMap(
+      data: VoteDto.toMap(
         sessionId: sessionId,
-        status: BeerStatus.pending,
-        name: name,
-        brewery: brewery,
-        style: style,
-        hops: hops,
-        aromas: aromas,
+        beerId: beerId,
+        userId: userId,
+        guesses: guesses,
+        hasSkipped: hasSkipped,
+        score: score,
       ),
     );
-    return _parseDoc(doc, BeerDto.fromDocument);
+    return _parseDoc(doc, VoteDto.fromDocument);
   }
 
   @override
-  Future<Beer> editBeer({
-    required String beerId,
-    required String name,
-    required String brewery,
-    String? style,
-    String? hops,
-    String? aromas,
-  }) async {
-    final doc = await _databases.updateDocument(
-      databaseId: _db,
-      collectionId: _beers,
-      documentId: beerId,
-      data: BeerDto.toUpdateMap(
-        name: name,
-        brewery: brewery,
-        style: style,
-        hops: hops,
-        aromas: aromas,
-      ),
-    );
-    return _parseDoc(doc, BeerDto.fromDocument);
-  }
-
-  @override
-  Future<void> startVoting(String beerId) async {
-    await _databases.updateDocument(
-      databaseId: _db,
-      collectionId: _beers,
-      documentId: beerId,
-      data: {'status': BeerStatus.voting.name},
-    );
-  }
-
-  @override
-  Future<void> revealBeer(String beerId) async {
-    await _databases.updateDocument(
-      databaseId: _db,
-      collectionId: _beers,
-      documentId: beerId,
-      data: {'status': BeerStatus.revealed.name},
-    );
-  }
-
-  @override
-  Future<List<Beer>> getBeers(String sessionId) async {
-    final result = await _databases.listDocuments(
-      databaseId: _db,
-      collectionId: _beers,
-      queries: [
-        Query.equal('sessionId', sessionId),
-        Query.orderAsc(r'$createdAt'),
-        Query.limit(_pageLimit),
-      ],
-    );
-    return result.documents
-        .map((doc) => _parseDoc(doc, BeerDto.fromDocument))
-        .toList();
-  }
-
-  @override
-  Stream<List<Beer>> watchBeers(String sessionId) {
-    const channel = 'databases.$_db.collections.$_beers.documents';
-    final controller = StreamController<List<Beer>>();
+  Stream<List<Vote>> watchVotesForSession(String sessionId) {
+    const channel = 'databases.$_db.collections.$_votes.documents';
+    final controller = StreamController<List<Vote>>();
 
     RealtimeSubscription? currentSubscription;
     var canceledByConsumer = false;
-
     var fetchChain = Future<void>.value();
 
     controller.onCancel = () {
@@ -140,13 +77,12 @@ final class AppwriteBeerRepository implements BeerRepository {
           final isRelevant = event.events.any(
             (name) =>
                 name.contains('documents.*.create') ||
-                name.contains('documents.*.update') ||
                 name.contains('documents.*.delete'),
           );
           if (!isRelevant) return;
 
           fetchChain = fetchChain.then(
-            (_) => getBeers(sessionId).then(
+            (_) => _getVotesForSession(sessionId).then(
               (list) {
                 if (!controller.isClosed) controller.add(list);
               },
@@ -171,7 +107,7 @@ final class AppwriteBeerRepository implements BeerRepository {
     }
 
     unawaited(
-      getBeers(sessionId).then(
+      _getVotesForSession(sessionId).then(
         (initial) {
           if (!controller.isClosed) controller.add(initial);
         },
@@ -182,8 +118,21 @@ final class AppwriteBeerRepository implements BeerRepository {
     );
 
     attach();
-
     return controller.stream;
+  }
+
+  Future<List<Vote>> _getVotesForSession(String sessionId) async {
+    final result = await _databases.listDocuments(
+      databaseId: _db,
+      collectionId: _votes,
+      queries: [
+        Query.equal('sessionId', sessionId),
+        Query.limit(_pageLimit),
+      ],
+    );
+    return result.documents
+        .map((doc) => _parseDoc(doc, VoteDto.fromDocument))
+        .toList();
   }
 
   T _parseDoc<T>(Document doc, T Function(Document) parse) {
