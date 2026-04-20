@@ -1,18 +1,23 @@
+import 'dart:async';
+
 import 'package:brewtaste/features/session/domain/errors/session_errors.dart';
 import 'package:brewtaste/features/session/presentation/notifiers/join_session_notifier.dart';
+import 'package:brewtaste/features/session/presentation/screens/qr_scan_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class JoinSessionScreen extends ConsumerStatefulWidget {
-  const JoinSessionScreen({super.key});
+  const JoinSessionScreen({this.initialCode, super.key});
+
+  final String? initialCode;
 
   @override
   ConsumerState<JoinSessionScreen> createState() => _JoinSessionScreenState();
 }
 
 class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
-  final _codeController = TextEditingController(text: 'BREW-');
+  late final TextEditingController _codeController;
   final _pseudoController = TextEditingController();
   bool _codeEmpty = false;
   bool _pseudoEmpty = false;
@@ -20,6 +25,8 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
   @override
   void initState() {
     super.initState();
+    final initial = widget.initialCode ?? 'BREW-';
+    _codeController = TextEditingController(text: initial);
     _codeController.selection = TextSelection.collapsed(
       offset: _codeController.text.length,
     );
@@ -50,6 +57,19 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
           code: code,
           pseudo: pseudo,
         );
+  }
+
+  Future<void> _scanQr() async {
+    final code = await Navigator.push<String>(
+      context,
+      MaterialPageRoute<String>(builder: (_) => const QrScanScreen()),
+    );
+    if (code != null) {
+      _codeController.text = code;
+      _codeController.selection = TextSelection.collapsed(
+        offset: code.length,
+      );
+    }
   }
 
   String _errorMessage(Object error) {
@@ -86,6 +106,11 @@ class _JoinSessionScreenState extends ConsumerState<JoinSessionScreen> {
               hintText: 'BREW-XXXX',
               errorText: _codeEmpty ? 'Requis' : null,
               prefixIcon: const Icon(Icons.tag_outlined),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.qr_code_scanner_outlined),
+                tooltip: 'Scanner le QR code',
+                onPressed: isLoading ? null : _scanQr,
+              ),
             ),
             textCapitalization: TextCapitalization.characters,
             onChanged: (v) {

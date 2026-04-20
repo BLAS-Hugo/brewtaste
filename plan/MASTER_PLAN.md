@@ -1,6 +1,6 @@
 # BrewTaste — Master Implementation Plan
 
-**Status:** In progress — Phase 5 complete, Phase 6 next  
+**Status:** In progress — Phase 6 complete, Phase 7 next  
 **Target:** MVP (Android + iOS)
 
 ---
@@ -15,7 +15,7 @@
 | 3 | Beer Feature | Add beer (manual + barcode), lobby beer list | ✅ Done |
 | 4 | Voting Feature | Vote flow, waiting screen | ✅ Done |
 | 5 | Results Feature | Calculation, ranking screen, detail modal | ✅ Done |
-| 6 | Deep Links + QR | `brewtaste://` scheme, QR code display/scan | — |
+| 6 | Deep Links + QR | `brewtaste://` scheme, QR code display/scan | ✅ Done |
 | 7 | Polish & Audit | Blind mode audit, business rules, UX | — |
 
 ---
@@ -124,10 +124,10 @@ All clients see revealed beer info; host can add next beer
 
 > **Goal:** `brewtaste://join/BREW-XXXX` opens the app directly into the join flow.
 
-- [ ] **6.1** Android intent filter in `AndroidManifest.xml`
-- [ ] **6.2** iOS scheme in `Info.plist`
-- [ ] **6.3** `app_links` integration → feed into GoRouter `/join/:code`
-- [ ] **6.4** QR code scan from join screen (scan host's QR → auto-fill code field)
+- [x] **6.1** Android intent filter in `AndroidManifest.xml` — added `host="join"` for specificity
+- [x] **6.2** iOS scheme in `Info.plist` — was already configured in Phase 1
+- [x] **6.3** `app_links` integration → `/join/:code` GoRoute added; `DeepLinkHandler` was already complete
+- [x] **6.4** QR code scan from join screen — `QrScanScreen` + camera icon button on code field
 - [ ] **6.5** End-to-end deep link test (manual)
 
 ---

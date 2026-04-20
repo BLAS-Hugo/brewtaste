@@ -51,6 +51,12 @@ GoRouter appRouter(Ref ref) {
           sessionId: state.pathParameters['id']!,
         ),
       ),
+      GoRoute(
+        path: '/join/:code',
+        builder: (context, state) => JoinSessionScreen(
+          initialCode: state.pathParameters['code'],
+        ),
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(child: Text('Page not found: ${state.error}')),
