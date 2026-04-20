@@ -1,6 +1,6 @@
 # BrewTaste — Master Implementation Plan
 
-**Status:** In progress — Phase 3 complete, Phase 4 next  
+**Status:** In progress — Phase 4 complete, Phase 5 next  
 **Target:** MVP (Android + iOS)
 
 ---
@@ -13,7 +13,7 @@
 | 1 | Core Infrastructure | Appwrite client, auth, router, Sentry | ✅ Done |
 | 2 | Session Feature | Create, join, lobby | ✅ Done |
 | 3 | Beer Feature | Add beer (manual + barcode), lobby beer list | ✅ Done |
-| 4 | Voting Feature | Vote flow, waiting screen | 🔜 Next |
+| 4 | Voting Feature | Vote flow, waiting screen | ✅ Done |
 | 5 | Results Feature | Calculation, ranking screen, detail modal | — |
 | 6 | Deep Links + QR | `brewtaste://` scheme, QR code display/scan | — |
 | 7 | Polish & Audit | Blind mode audit, business rules, UX | — |
@@ -78,7 +78,7 @@
 
 ---
 
-## Phase 4 — Voting Feature 🔜
+## Phase 4 — Voting Feature ✅
 
 > **Goal:** Host adds a beer and starts a vote; participants vote; host closes the round and moves on.
 
@@ -97,14 +97,14 @@ Host taps "Révéler" → AdvanceRoundUseCase → beer.status = revealed
 All clients see revealed beer info; host can add next beer
 ```
 
-- [ ] **4.1** `VotingScreen` (Participant) — score slider 1–10, guess fields (conditional on `session.guessFields`), skip button, submit; blind mode hides name/brewery
-- [ ] **4.2** `SubmitVoteUseCase` — write vote to Appwrite (one-shot, no update permission)
-- [ ] **4.3** Blind mode filter in `AppwriteBeerRepository` — strip `name`/`brewery` when `status != revealed` and `session.isBlind`
-- [ ] **4.4** `TastingScreen` (Host) — beer list with status badges, "Ajouter une bière" FAB, per-beer vote counter (X/Y participants), "Démarrer le vote" / "Révéler" actions, "Terminer la session" button
-- [ ] **4.5** `AdvanceRoundUseCase` — set `beer.status = revealed`
-- [ ] **4.6** Realtime subscription: `votes` collection → host vote counter updates live
-- [ ] **4.7** `WaitingScreen` (Participant) — shown when no active vote (`beer.status != voting`); listens for next `voting` beer or session `revealed`
-- [ ] **4.8** Realtime: `sessions/{id}` + `beers` → all clients navigate on status change
+- [x] **4.1** `VotingForm` (Participant) — score slider 1–10, guess fields (conditional on `session.guessFields`), skip button, submit; blind mode masks via `visibleBeers`
+- [x] **4.2** `SubmitVoteUseCase` — write vote to Appwrite (one-shot, no update permission); validates score 1–10 unless skipping
+- [x] **4.3** Blind mode filtering in `TastingState.visibleBeers` — masks `name`/`brewery` for participants when `isBlind && beer.status != revealed`
+- [x] **4.4** `TastingScreen` (Host) — beer list with status badges, FAB → AddBeerScreen, per-beer vote counter (X/Y), "Démarrer le vote" / "Révéler", "Terminer la session"
+- [x] **4.5** `AdvanceRoundUseCase` — `revealBeer()` + `endSession()`; `BeerRepository.revealBeer()` added
+- [x] **4.6** `VoteRepository` + `AppwriteVoteRepository` — `watchVotesForSession` realtime (host only); `submitVote`
+- [x] **4.7** `_WaitingView` + `_VoteConfirmedView` — participant states between rounds and after voting
+- [x] **4.8** Session + beers subscriptions in `TastingNotifier`; navigates to `/results` on `session.status = revealed`
 
 ---
 
