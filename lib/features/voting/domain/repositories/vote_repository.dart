@@ -10,5 +10,7 @@ abstract interface class VoteRepository {
     int? score,
   });
 
+  Future<List<Vote>> getVotesForSession(String sessionId);
+
   Stream<List<Vote>> watchVotesForSession(String sessionId);
 }
