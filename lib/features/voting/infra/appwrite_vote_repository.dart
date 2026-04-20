@@ -52,6 +52,10 @@ final class AppwriteVoteRepository implements VoteRepository {
   }
 
   @override
+  Future<List<Vote>> getVotesForSession(String sessionId) =>
+      _getVotesForSession(sessionId);
+
+  @override
   Stream<List<Vote>> watchVotesForSession(String sessionId) {
     const channel = 'databases.$_db.collections.$_votes.documents';
     final controller = StreamController<List<Vote>>();

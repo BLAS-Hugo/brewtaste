@@ -1,6 +1,6 @@
 # BrewTaste — Master Implementation Plan
 
-**Status:** In progress — Phase 4 complete, Phase 5 next  
+**Status:** In progress — Phase 5 complete, Phase 6 next  
 **Target:** MVP (Android + iOS)
 
 ---
@@ -14,7 +14,7 @@
 | 2 | Session Feature | Create, join, lobby | ✅ Done |
 | 3 | Beer Feature | Add beer (manual + barcode), lobby beer list | ✅ Done |
 | 4 | Voting Feature | Vote flow, waiting screen | ✅ Done |
-| 5 | Results Feature | Calculation, ranking screen, detail modal | — |
+| 5 | Results Feature | Calculation, ranking screen, detail modal | ✅ Done |
 | 6 | Deep Links + QR | `brewtaste://` scheme, QR code display/scan | — |
 | 7 | Polish & Audit | Blind mode audit, business rules, UX | — |
 
@@ -112,11 +112,11 @@ All clients see revealed beer info; host can add next beer
 
 > **Goal:** Host closes session; all clients see ranked results simultaneously.
 
-- [ ] **5.1** `CloseSessionUseCase` — set `session.status = revealed`
-- [ ] **5.2** `ResultsCalculationService` — fetch all session votes, compute per-beer average (skips excluded), sort descending by avg then vote count on tie
-- [ ] **5.3** `ResultsScreen` — ranked beer list, `X/Y ont goûté` per beer, reveal animation
-- [ ] **5.4** `BeerDetailModal` — full beer info, per-participant score + guesses (✓/✗), skips as `—`
-- [ ] **5.5** Beers with zero non-skipped votes shown as "Personne n'a goûté"
+- [x] **5.1** `CloseSessionUseCase` — already handled by `AdvanceRoundUseCase.endSession` (Phase 4)
+- [x] **5.2** `ResultsCalculationService` — fetch all session votes, compute per-beer average (skips excluded), sort descending by avg then vote count on tie
+- [x] **5.3** `ResultsScreen` — ranked beer list, `X/Y ont goûté` per beer
+- [x] **5.4** `BeerDetailModal` — full beer info, per-participant score + guesses (✓/✗), skips as `—`
+- [x] **5.5** Beers with zero non-skipped votes shown as "Personne n'a goûté"
 
 ---
 
