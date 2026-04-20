@@ -54,7 +54,7 @@ class ResultsNotifier extends _$ResultsNotifier {
 
     if (session == null) throw SessionNotFoundException(sessionId);
 
-    final rankedBeers = ResultsCalculationService().calculate(
+    final rankedBeers = const ResultsCalculationService().calculate(
       beers: beers,
       votes: votes,
       participants: participants,

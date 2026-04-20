@@ -5,6 +5,8 @@ import 'package:brewtaste/shared/domain/entities/participant.dart';
 import 'package:brewtaste/shared/domain/entities/vote.dart';
 
 final class ResultsCalculationService {
+  const ResultsCalculationService();
+
   List<BeerResult> calculate({
     required List<Beer> beers,
     required List<Vote> votes,
@@ -14,7 +16,9 @@ final class ResultsCalculationService {
 
     final entries = beers.map((beer) {
       final beerVotes = votes.where((v) => v.beerId == beer.id).toList();
-      final validVotes = beerVotes.where((v) => !v.hasSkipped).toList();
+      final validVotes = beerVotes
+          .where((v) => !v.hasSkipped && v.score != null)
+          .toList();
       final scores = validVotes.map((v) => v.score!).toList();
       final avg = scores.isEmpty
           ? null
@@ -43,7 +47,7 @@ final class ResultsCalculationService {
         beer: data.beer,
         averageScore: data.avg,
         validVoteCount: data.validCount,
-        totalVoteCount: data.totalCount,
+        participantCount: data.totalCount,
       );
     }).toList();
   }

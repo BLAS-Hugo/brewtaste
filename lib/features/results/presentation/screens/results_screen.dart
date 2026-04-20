@@ -61,7 +61,7 @@ class _ResultsView extends StatelessWidget {
     BeerResult beerResult,
     ResultsState results,
   ) {
-    final participantVotes = ResultsCalculationService().votesForBeer(
+    final participantVotes = const ResultsCalculationService().votesForBeer(
       beer: beerResult.beer,
       votes: results.votes,
       participants: results.participants,
@@ -146,7 +146,7 @@ class _BeerResultTile extends StatelessWidget {
                               ),
                         ),
                       Text(
-                        '${beerResult.validVoteCount}/${beerResult.totalVoteCount} ont goûté',
+                        '${beerResult.validVoteCount}/${beerResult.participantCount} ont goûté',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -228,7 +228,7 @@ class _BeerDetailModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final beer = beerResult.beer;
     final colorScheme = Theme.of(context).colorScheme;
-    final calculator = ResultsCalculationService();
+    const calculator = ResultsCalculationService();
 
     return DraggableScrollableSheet(
       expand: false,
